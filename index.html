@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pixabay Fetch Example</title>
+  <!-- Bootstrap CSS -->
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <style>
+    body {
+      padding: 20px;
+    }
+
+    h1 {
+      margin-bottom: 20px;
+    }
+
+    #imageContainer {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .preview-image {
+      margin: 10px;
+      cursor: pointer;
+      max-height: 200px;
+      transition: transform 0.3s ease-in-out;
+    }
+
+    .preview-image:hover {
+      transform: scale(1.1);
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Imagens do Pixabay</h1>
+
+  <form id="searchForm" class="form-inline mb-3">
+    <div class="form-group mr-2">
+      <label for="searchInput" class="mr-2">Pesquisar Imagens:</label>
+      <input type="text" id="searchInput" name="searchQuery" class="form-control">
+    </div>
+    <button type="submit" class="btn btn-primary">Buscar</button>
+  </form>
+
+  <div id="imageContainer"></div>
+
+  <!-- Modal para exibir a visualização da imagem -->
+  <div class="modal fade" id="previewModal" tabindex="-1" role="dialog" aria-labelledby="previewModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="previewModalLabel">Visualização da Imagem</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Fechar">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <img src="" alt="Imagem" id="previewImage" style="max-width: 100%;">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.3/dist/umd/popper.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+  <script>
+    // Chave da API do Pixabay
+    const apiKey = '12180485-63058e50c2824559402449f76';
+
+    // URL base da API do Pixabay
+    const apiUrl = 'https://pixabay.com/api/';
+
+    // Container onde as imagens serão exibidas
+    const imageContainer = document.getElementById('imageContainer');
+    // Formulário de pesquisa
+    const searchForm = document.getElementById('searchForm');
+    // Modal de visualização
+    const previewModal = document.getElementById('previewModal');
+    const previewImage = document.getElementById('previewImage');
+
+    // Função para realizar a pesquisa de imagens
+    function searchImages(query) {
+      // Parâmetros da requisição para a API do Pixabay
+      const params = {
+        key: apiKey,
+        q: query,
+        image_type: 'photo'
+      };
+
+      // Monta a URL da requisição com base nos parâmetros
+      const url = `${apiUrl}?${new URLSearchParams(params).toString()}`;
+
+      // Limpa o container de imagens
+      imageContainer.innerHTML = '';
+
+      // Faz a requisição para a API do Pixabay
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          // Verifica se a resposta foi bem-sucedida
+          if (data.hits && data.hits.length > 0) {
+            // Itera sobre as imagens e as exibe no container
+            data.hits.forEach(image => {
+              const imgElement = document.createElement('img');
+              imgElement.src = image.webformatURL;
+              imgElement.classList.add('preview-image');
+              imgElement.addEventListener('click', function () {
+                previewImage.src = image.largeImageURL;
+                $('#previewModal').modal('show');
+              });
+              imageContainer.appendChild(imgElement);
+            });
+          } else {
+            // Exibe uma mensagem de erro caso não haja imagens
+            imageContainer.textContent = 'Nenhuma imagem encontrada.';
+          }
+        })
+        .catch(error => {
+          console.error(error);
+          // Exibe uma mensagem de erro caso ocorra algum problema na requisição
+          imageContainer.textContent = 'Ocorreu um erro ao carregar as imagens.';
+        });
+    }
+
+    // Manipulador de evento para o envio do formulário de pesquisa
+    searchForm.addEventListener('submit', function (e) {
+      e.preventDefault(); // Evita o comportamento padrão de envio do formulário
+      const searchQuery = document.getElementById('searchInput').value;
+      searchImages(searchQuery);
+    });
+  </script>
+</body>
+
+</html>
